@@ -1,5 +1,5 @@
 import { Handle, Position } from "@xyflow/react";
-import { T, STATUS_CONFIG, PRIORITY_CONFIG, FONT_FAMILY } from "../theme";
+import { T, STATUS_CONFIG, FONT_FAMILY } from "../theme";
 
 export default function TaskNode({ id, data, selected }) {
   const sc = STATUS_CONFIG[data.status] || STATUS_CONFIG.todo;
@@ -88,15 +88,6 @@ export default function TaskNode({ id, data, selected }) {
         }}>
           {sc.label}
         </span>
-
-        {data.priority && data.priority !== "low" && (
-          <span style={{
-            fontSize: 10, fontWeight: 600,
-            color: PRIORITY_CONFIG[data.priority]?.color || T.textMuted,
-          }}>
-            {PRIORITY_CONFIG[data.priority]?.label}
-          </span>
-        )}
 
         {isUpstreamBlocked && (
           <span style={{ fontSize: 10, color: T.red }}>⚠ blocked upstream</span>

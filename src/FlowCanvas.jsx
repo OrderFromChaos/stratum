@@ -15,12 +15,13 @@ import ProjectPanel from "./components/ProjectPanel";
 import QuickAdd from "./components/QuickAdd";
 import Toolbar from "./components/Toolbar";
 import Legend from "./components/Legend";
+import RightRail from "./components/RightRail";
 
 const nodeTypes = { task: TaskNode };
 
 export default function FlowCanvas({ workspace, updateWorkspace }) {
   const reactFlowWrapper = useRef(null);
-  const { screenToFlowPosition } = useReactFlow();
+  const { screenToFlowPosition, setCenter } = useReactFlow();
 
   /* ─── Initialize from workspace prop ─── */
   // The parent uses a `key` to force remount on workspace switch, so initial
@@ -31,7 +32,7 @@ export default function FlowCanvas({ workspace, updateWorkspace }) {
       data: { ...n.data, projects: workspace.projects },
     })),
     [] // mount only
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   );
 
   const [projects, setProjects] = useState(workspace.projects);
@@ -64,8 +65,37 @@ export default function FlowCanvas({ workspace, updateWorkspace }) {
   useBlockPropagation(nodes, edges, setNodes, setEdges);
 
   /* ─── Edge creation ─── */
+  // QoL: when linking two tasks where one has a project and the other doesn't,
+  // adopt the assigned project onto the unassigned node. If both are unassigned
+  // or if they conflict, leave them alone.
   const onConnect = useCallback(
     (params) => {
+      setNodes((nds) => {
+        const source = nds.find((n) => n.id === params.source);
+        const target = nds.find((n) => n.id === params.target);
+        if (!source || !target) return nds;
+
+        const sp = source.data.project;
+        const tp = target.data.project;
+
+        // Only act when exactly one side is unassigned.
+        if (sp && !tp) {
+          return nds.map((n) =>
+            n.id === target.id
+              ? { ...n, data: { ...n.data, project: sp } }
+              : n
+          );
+        }
+        if (tp && !sp) {
+          return nds.map((n) =>
+            n.id === source.id
+              ? { ...n, data: { ...n.data, project: tp } }
+              : n
+          );
+        }
+        return nds;
+      });
+
       setEdges((eds) =>
         addEdge(
           {
@@ -79,7 +109,7 @@ export default function FlowCanvas({ workspace, updateWorkspace }) {
         )
       );
     },
-    [setEdges]
+    [setNodes, setEdges]
   );
 
   /* ─── Selection ─── */
@@ -248,6 +278,25 @@ export default function FlowCanvas({ workspace, updateWorkspace }) {
           onClose={() => setSelectedNodeId(null)}
         />
       )}
+
+      <RightRail
+        nodes={nodes}
+        edges={edges}
+        projects={projects}
+        selectedNodeId={selectedNodeId}
+        onSelectNode={setSelectedNodeId}
+        onFocusNode={(nodeId) => {
+          const node = nodes.find((n) => n.id === nodeId);
+          if (!node) return;
+          // Center on the node with a smooth pan
+          setCenter(
+            node.position.x + 100,
+            node.position.y + 50,
+            { zoom: 1, duration: 400 }
+          );
+          setSelectedNodeId(nodeId);
+        }}
+      />
     </div>
   );
 }

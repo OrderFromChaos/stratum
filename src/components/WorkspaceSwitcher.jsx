@@ -47,7 +47,11 @@ export default function WorkspaceSwitcher({
       </span>
 
       {/* workspace tabs */}
-      <div style={{ display: "flex", gap: 2, flex: 1, overflowX: "auto" }}>
+      <div style={{
+        display: "flex", gap: 2, flex: 1,
+        overflowX: "auto", overflowY: "hidden",
+        minWidth: 0,
+      }}>
         {workspaces.map((ws) => (
           <div
             key={ws.id}

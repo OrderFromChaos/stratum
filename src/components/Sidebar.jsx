@@ -1,4 +1,4 @@
-import { T, STATUS_CONFIG, PRIORITY_CONFIG, FONT_FAMILY } from "../theme";
+import { T, STATUS_CONFIG, FONT_FAMILY } from "../theme";
 import { inputStyle, labelStyle, closeBtnStyle, toggleBtnStyle } from "../styles";
 
 export default function Sidebar({
@@ -95,20 +95,7 @@ export default function Sidebar({
       </div>
 
       {/* priority */}
-      <div>
-        <label style={labelStyle}>Priority</label>
-        <div style={{ display: "flex", gap: 4 }}>
-          {Object.entries(PRIORITY_CONFIG).map(([key, cfg]) => (
-            <button
-              key={key}
-              onClick={() => update("priority", key)}
-              style={toggleBtnStyle(data.priority === key, cfg.color)}
-            >
-              {cfg.label}
-            </button>
-          ))}
-        </div>
-      </div>
+      {/* (hidden — re-enable by uncommenting and restoring PRIORITY_CONFIG import) */}
 
       {/* project */}
       <div>
