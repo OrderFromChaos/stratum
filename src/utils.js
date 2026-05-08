@@ -3,6 +3,8 @@ let idCounter = Date.now();
 
 export const newTaskId = () => `task_${idCounter++}`;
 export const newProjectId = () => `proj_${idCounter++}`;
+export const newWorkspaceId = () => `ws_${idCounter++}`;
+export const newEdgeId = () => `edge_${idCounter++}`;
 
 /* ─── Graph: BFS blocked propagation ─── */
 /**

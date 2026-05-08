@@ -6,12 +6,12 @@ const defaultEdgeStyle = {
   style: { stroke: T.accent, strokeWidth: 1.5 },
 };
 
-export const SEED_PROJECTS = [
+const SEED_PROJECTS = [
   { id: "proj_demo1", name: "Side Project", color: "#58a6ff" },
   { id: "proj_demo2", name: "Homelab", color: "#3fb950" },
 ];
 
-export const SEED_NODES = [
+const SEED_NODES = [
   {
     id: "t1", type: "task", position: { x: 250, y: 40 },
     data: {
@@ -56,10 +56,42 @@ export const SEED_NODES = [
   },
 ];
 
-export const SEED_EDGES = [
+const SEED_EDGES = [
   { id: "e1-2", source: "t1", target: "t2", ...defaultEdgeStyle },
   { id: "e1-3", source: "t1", target: "t3", ...defaultEdgeStyle },
   { id: "e3-4", source: "t3", target: "t4", ...defaultEdgeStyle },
   { id: "e2-4", source: "t2", target: "t4", ...defaultEdgeStyle },
   { id: "e5-6", source: "t5", target: "t6", ...defaultEdgeStyle },
 ];
+
+/* Default top-level state — used on first launch */
+export const SEED_STATE = {
+  workspaces: [
+    {
+      id: "ws_personal",
+      name: "Personal",
+      projects: SEED_PROJECTS,
+      nodes: SEED_NODES,
+      edges: SEED_EDGES,
+    },
+    {
+      id: "ws_work",
+      name: "Work",
+      projects: [],
+      nodes: [],
+      edges: [],
+    },
+  ],
+  activeWorkspaceId: "ws_personal",
+};
+
+/* Empty workspace template for newly-created ones */
+export function createEmptyWorkspace(id, name) {
+  return {
+    id,
+    name,
+    projects: [],
+    nodes: [],
+    edges: [],
+  };
+}

@@ -6,9 +6,8 @@ import {
 } from "@xyflow/react";
 
 import { T, FONT_FAMILY } from "./theme";
-import { newTaskId } from "./utils";
+import { newTaskId, newEdgeId } from "./utils";
 import { useBlockPropagation } from "./hooks/useBlockPropagation";
-import { SEED_PROJECTS, SEED_NODES, SEED_EDGES } from "./data/seed";
 
 import TaskNode from "./components/TaskNode";
 import Sidebar from "./components/Sidebar";
@@ -19,24 +18,40 @@ import Legend from "./components/Legend";
 
 const nodeTypes = { task: TaskNode };
 
-export default function FlowCanvas() {
+export default function FlowCanvas({ workspace, updateWorkspace }) {
   const reactFlowWrapper = useRef(null);
   const { screenToFlowPosition } = useReactFlow();
 
-  const [projects, setProjects] = useState(SEED_PROJECTS);
-
-  // Inject project list into seed data for initial render
+  /* ─── Initialize from workspace prop ─── */
+  // The parent uses a `key` to force remount on workspace switch, so initial
+  // state is always correct for the current workspace.
   const initialNodes = useMemo(
-    () => SEED_NODES.map((n) => ({ ...n, data: { ...n.data, projects } })),
-    [] // only on mount
+    () => workspace.nodes.map((n) => ({
+      ...n,
+      data: { ...n.data, projects: workspace.projects },
+    })),
+    [] // mount only
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   );
 
+  const [projects, setProjects] = useState(workspace.projects);
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
-  const [edges, setEdges, onEdgesChange] = useEdgesState(SEED_EDGES);
+  const [edges, setEdges, onEdgesChange] = useEdgesState(workspace.edges);
   const [selectedNodeId, setSelectedNodeId] = useState(null);
   const [projectsOpen, setProjectsOpen] = useState(false);
   const [filterProject, setFilterProject] = useState(null);
   const [filterStatus, setFilterStatus] = useState(null);
+
+  /* ─── Sync internal state back to parent (workspace store) ─── */
+  // Strip `projects` from node data before persisting (it's reinjected on load)
+  useEffect(() => {
+    const cleanNodes = nodes.map((n) => {
+      const { projects: _p, propagatedBlocked: _b, ...rest } = n.data;
+      return { ...n, data: rest };
+    });
+    updateWorkspace({ nodes: cleanNodes, edges, projects });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [nodes, edges, projects]);
 
   /* ─── Sync project list into all nodes ─── */
   useEffect(() => {
@@ -55,6 +70,7 @@ export default function FlowCanvas() {
         addEdge(
           {
             ...params,
+            id: newEdgeId(),
             markerEnd: { type: MarkerType.ArrowClosed, color: T.accent },
             style: { stroke: T.accent, strokeWidth: 1.5 },
             animated: false,
@@ -70,7 +86,17 @@ export default function FlowCanvas() {
   const onNodeClick = useCallback((_, node) => setSelectedNodeId(node.id), []);
   const onPaneClick = useCallback(() => setSelectedNodeId(null), []);
 
-  /* ─── Double-click to add ─── */
+  /* ─── Edge interactions ─── */
+  // Right-click to delete an edge immediately
+  const onEdgeContextMenu = useCallback(
+    (event, edge) => {
+      event.preventDefault();
+      setEdges((eds) => eds.filter((e) => e.id !== edge.id));
+    },
+    [setEdges]
+  );
+
+  /* ─── Double-click canvas to add task ─── */
   const onDoubleClick = useCallback(
     (event) => {
       const position = screenToFlowPosition({
@@ -81,16 +107,10 @@ export default function FlowCanvas() {
       setNodes((nds) => [
         ...nds,
         {
-          id,
-          type: "task",
-          position,
+          id, type: "task", position,
           data: {
-            label: "New Task",
-            status: "todo",
-            priority: "medium",
-            project: null,
-            description: "",
-            projects,
+            label: "New Task", status: "todo", priority: "medium",
+            project: null, description: "", projects,
           },
         },
       ]);
@@ -110,16 +130,10 @@ export default function FlowCanvas() {
       setNodes((nds) => [
         ...nds,
         {
-          id,
-          type: "task",
-          position,
+          id, type: "task", position,
           data: {
-            label: title,
-            status: "todo",
-            priority: "medium",
-            project: filterProject || null,
-            description: "",
-            projects,
+            label: title, status: "todo", priority: "medium",
+            project: filterProject || null, description: "", projects,
           },
         },
       ]);
@@ -151,7 +165,7 @@ export default function FlowCanvas() {
 
   return (
     <div style={{
-      display: "flex", width: "100vw", height: "100vh",
+      display: "flex", flex: 1, minHeight: 0,
       background: T.bg, fontFamily: FONT_FAMILY,
     }}>
       <link
@@ -169,6 +183,7 @@ export default function FlowCanvas() {
           onNodeClick={onNodeClick}
           onPaneClick={onPaneClick}
           onDoubleClick={onDoubleClick}
+          onEdgeContextMenu={onEdgeContextMenu}
           nodeTypes={nodeTypes}
           fitView
           fitViewOptions={{ padding: 0.3 }}
@@ -177,6 +192,7 @@ export default function FlowCanvas() {
           style={{ background: T.bg }}
           deleteKeyCode={["Backspace", "Delete"]}
           multiSelectionKeyCode="Shift"
+          edgesFocusable={true}
         >
           <Background color={T.textDim} gap={20} size={1} style={{ opacity: 0.3 }} />
           <Controls style={{

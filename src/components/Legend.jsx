@@ -1,4 +1,4 @@
-import { T, FONT_FAMILY } from "../theme";
+import { T } from "../theme";
 import { panelStyle } from "../styles";
 
 export default function Legend() {
@@ -12,12 +12,14 @@ export default function Legend() {
       borderRadius: 8,
     }}>
       <span style={{ fontWeight: 700, color: T.textDim, marginBottom: 2 }}>
-        CONNECTIONS
+        TIPS
       </span>
       <span><span style={{ color: T.accent }}>●</span> Top handle = depends on</span>
       <span><span style={{ color: T.green }}>●</span> Bottom handle = blocks</span>
       <span style={{ color: T.textDim, marginTop: 3 }}>Drag handle → handle to link</span>
       <span style={{ color: T.textDim }}>Double-click canvas to add task</span>
+      <span style={{ color: T.textDim }}>Click edge + Delete to remove</span>
+      <span style={{ color: T.textDim }}>Right-click edge to delete</span>
     </div>
   );
 }
