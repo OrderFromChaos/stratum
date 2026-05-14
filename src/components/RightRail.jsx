@@ -12,11 +12,19 @@ export default function RightRail({
     const entryPoints = nodes.filter(
       (n) => !hasParent.has(n.id) && n.data.status !== "done"
     );
-    const inProgress = nodes.filter(
-      (n) => n.data.status === "in-progress" && !entryPoints.includes(n)
+    const entryPointIds = new Set(entryPoints.map((n) => n.id));
+    const inProgressDeep = nodes.filter(
+      (n) => n.data.status === "in-progress" && !entryPointIds.has(n.id)
     );
-    // entry points first, then in-progress that's deeper in the graph
-    return [...entryPoints, ...inProgress];
+    const combined = [...entryPoints, ...inProgressDeep];
+
+    // Sort: in-progress → todo → blocked (done is already filtered out)
+    const statusOrder = { "in-progress": 0, "todo": 1, "blocked": 2, "done": 3 };
+    return combined.sort(
+      (a, b) =>
+        (statusOrder[a.data.status] ?? 99) -
+        (statusOrder[b.data.status] ?? 99)
+    );
   }, [nodes, edges]);
 
   /* ─── Terminal goals: nodes with no outgoing edges ─── */

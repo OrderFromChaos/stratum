@@ -45,6 +45,7 @@ export default function Toolbar({
         style={selectStyle}
       >
         <option value="">All Statuses</option>
+        <option value="__not_done__">Not Done</option>
         {Object.entries(STATUS_CONFIG).map(([key, cfg]) => (
           <option key={key} value={key}>{cfg.label}</option>
         ))}

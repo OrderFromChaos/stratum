@@ -176,7 +176,11 @@ export default function FlowCanvas({ workspace, updateWorkspace }) {
     return nodes.map((n) => {
       let hidden = false;
       if (filterProject && n.data.project !== filterProject) hidden = true;
-      if (filterStatus && n.data.status !== filterStatus) hidden = true;
+      if (filterStatus === "__not_done__") {
+        if (n.data.status === "done") hidden = true;
+      } else if (filterStatus && n.data.status !== filterStatus) {
+        hidden = true;
+      }
       return { ...n, hidden };
     });
   }, [nodes, filterProject, filterStatus]);

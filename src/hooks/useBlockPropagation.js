@@ -33,7 +33,7 @@ export function useBlockPropagation(nodes, edges, setNodes, setEdges) {
 
         return {
           ...e,
-          animated: isBlockingEdge,
+          animated: false,
           style: {
             stroke: isBlockingEdge ? T.red : T.accent,
             strokeWidth: 1.5,
